@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Abdis väg till 90 kg</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e8eaf0;
+      min-height: 100vh;
+      padding: 32px 20px;
+    }
+
+    .page-header { text-align: center; margin-bottom: 32px; }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+      background: linear-gradient(90deg, #4fc3f7, #81d4fa, #b3e5fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle { color: #7a8ba0; font-size: 0.9rem; }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+      align-items: start;
+    }
+
+    @media (max-width: 800px) {
+      .main-layout { grid-template-columns: 1fr; }
+    }
+
+    .left-col { display: flex; flex-direction: column; gap: 24px; }
+    .right-col { display: flex; flex-direction: column; gap: 24px; }
+
+    .card {
+      background: #1a1d27;
+      border: 1px solid #2a2e3d;
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .card h2 {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #4fc3f7;
+      margin-bottom: 18px;
+    }
+
+    label { display: block; font-size: 0.85rem; color: #9aa5b4; margin-bottom: 6px; }
+    .input-group { margin-bottom: 20px; }
+
+    .weight-input-wrapper {
+      display: flex;
+      align-items: center;
+      background: #0f1117;
+      border: 1px solid #2a2e3d;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .weight-input-wrapper input[type="number"] {
+      background: transparent;
+      border: none;
+      color: #e8eaf0;
+      font-size: 1.4rem;
+      font-weight: 700;
+      padding: 12px 16px;
+      width: 100%;
+      outline: none;
+    }
+
+    .weight-input-wrapper span {
+      padding-right: 16px;
+      color: #4fc3f7;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .activity-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .activity-btn {
+      background: #0f1117;
+      border: 1px solid #2a2e3d;
+      border-radius: 10px;
+      padding: 14px 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.18s ease;
+      color: #9aa5b4;
+    }
+
+    .activity-btn:hover { border-color: #4fc3f7; color: #e8eaf0; }
+    .activity-btn.selected { background: #0d2a3a; border-color: #4fc3f7; color: #4fc3f7; }
+    .activity-btn .icon { font-size: 1.5rem; margin-bottom: 6px; }
+    .activity-btn .name { font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; }
+    .activity-btn .desc { font-size: 0.65rem; color: #5a6a7a; line-height: 1.4; }
+    .activity-btn.selected .desc { color: #5aa8c8; }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .stat-box {
+      background: #0f1117;
+      border: 1px solid #2a2e3d;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-box.highlight {
+      border-color: #4fc3f7;
+      background: #0d2a3a;
+      grid-column: span 2;
+    }
+
+    .stat-value { font-size: 2rem; font-weight: 800; color: #4fc3f7; line-height: 1; }
+    .stat-value.big { font-size: 2.8rem; }
+    .stat-label { font-size: 0.72rem; color: #5a7080; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.8px; }
+    .stat-sub { font-size: 0.8rem; color: #7a9aaa; margin-top: 6px; }
+
+    .date-box {
+      background: #0f1117;
+      border: 1px solid #2a2e3d;
+      border-radius: 12px;
+      padding: 14px 20px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #7a8ba0;
+    }
+    .date-box strong { color: #81d4fa; font-size: 1rem; }
+
+    .chart-wrapper { margin-top: 10px; position: relative; height: 200px; }
+
+    .empty-state {
+      text-align: center;
+      color: #3a4a5a;
+      padding: 40px 20px;
+      font-size: 0.95rem;
+    }
+    .empty-state .big-icon { font-size: 3rem; margin-bottom: 12px; }
+
+    .deficit-bar {
+      height: 8px;
+      background: #0f1117;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+    .deficit-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4fc3f7, #0288d1);
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+    .deficit-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      color: #5a6a7a;
+      margin-top: 4px;
+    }
+
+    /* ── MEAL PLAN ── */
+    .meal-section-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #3a5060;
+      margin-bottom: 10px;
+    }
+
+    .meal-item {
+      background: #0f1117;
+      border: 1px solid #2a2e3d;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .meal-item-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+    }
+
+    .meal-img-svg {
+      width: 72px;
+      height: 72px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .meal-item-info { flex: 1; min-width: 0; }
+    .meal-item-name { font-size: 0.88rem; font-weight: 700; color: #e8eaf0; margin-bottom: 3px; }
+    .meal-item-desc { font-size: 0.7rem; color: #5a7080; line-height: 1.4; }
+
+    .meal-macros { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+
+    .macro-pill {
+      background: #1a2a35;
+      border-radius: 20px;
+      padding: 3px 8px;
+      font-size: 0.66rem;
+      color: #4fc3f7;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .macro-pill.carb { color: #ffa726; background: #2a1f0a; }
+    .macro-pill.netto { color: #66bb6a; background: #0a2010; }
+    .macro-pill.prot  { color: #ce93d8; background: #1e0a28; }
+
+    .meal-ingredients { border-top: 1px solid #1e2230; padding: 10px 14px; }
+
+    .ingredient-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid #181c27;
+      font-size: 0.76rem;
+    }
+    .ingredient-row:last-child { border-bottom: none; }
+
+    .ing-name { color: #9aa5b4; display: flex; align-items: center; gap: 6px; }
+    .ing-dot { width: 6px; height: 6px; border-radius: 50%; background: #2a4a5a; flex-shrink: 0; }
+    .ing-amount { color: #5a7888; font-size: 0.7rem; min-width: 42px; text-align: right; }
+    .ing-kcal { color: #4fc3f7; font-weight: 600; font-size: 0.7rem; min-width: 52px; text-align: right; }
+
+    .meal-totals {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      border-top: 1px solid #1e2230;
+    }
+
+    .meal-totals-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+    .total-cell {
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .total-cell:not(:last-child) { border-right: 1px solid #1e2230; }
+    .total-cell-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.8px; color: #3a5060; }
+    .total-cell-val { font-size: 0.85rem; font-weight: 700; color: #4fc3f7; }
+    .total-cell-val.carb { color: #ffa726; }
+    .total-cell-val.netto { color: #66bb6a; }
+    .total-cell-val.prot { color: #ce93d8; }
+
+    .add-meal-placeholder {
+      width: 100%;
+      background: transparent;
+      border: 1px dashed #1e2d38;
+      border-radius: 12px;
+      padding: 16px;
+      color: #2a4050;
+      font-size: 0.78rem;
+      text-align: center;
+      letter-spacing: 0.3px;
+      margin-bottom: 16px;
+    }
+
+    .daily-total-box {
+      background: #0d2233;
+      border: 1px solid #1a3a50;
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .daily-total-box .dt-header {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #2a5a70;
+      margin-bottom: 10px;
+    }
+
+    .daily-total-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .daily-total-row-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+    .dt-cell { text-align: center; }
+    .dt-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.8px; color: #2a6070; }
+    .dt-val { font-size: 1.1rem; font-weight: 800; color: #4fc3f7; }
+    .dt-val.carb { color: #ffa726; }
+    .dt-val.netto { color: #66bb6a; }
+    .dt-val.prot { color: #ce93d8; }
+
+    .footnote { font-size: 0.6rem; color: #1e3a48; margin-top: 8px; text-align: right; }
+
+    /* ── TABS ── */
+    .tabs-bar {
+      display: flex;
+      gap: 6px;
+      max-width: 1100px;
+      margin: 0 auto 24px auto;
+      background: #1a1d27;
+      border: 1px solid #2a2e3d;
+      border-radius: 14px;
+      padding: 6px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #5a7080;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .tab-btn:hover { color: #9aa5b4; }
+
+    .tab-btn.active {
+      background: #0d2a3a;
+      color: #4fc3f7;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── WEIGHT TAB ── */
+    .weight-page {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .add-weight-row {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .add-weight-row .weight-input-wrapper { flex: 1; }
+
+    .add-weight-btn {
+      background: linear-gradient(135deg, #4fc3f7, #0288d1);
+      border: none;
+      color: white;
+      padding: 0 24px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .add-weight-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(79,195,247,0.3);
+    }
+
+    .add-weight-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .weight-chart-wrapper {
+      position: relative;
+      height: 320px;
+      margin-top: 8px;
+    }
+
+    .weight-history-list {
+      max-height: 360px;
+      overflow-y: auto;
+      margin-top: 4px;
+    }
+
+    .weight-entry {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 14px;
+      align-items: center;
+      padding: 12px 14px;
+      background: #0f1117;
+      border: 1px solid #2a2e3d;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .we-date { font-size: 0.82rem; color: #9aa5b4; }
+    .we-weight { font-size: 1.1rem; font-weight: 700; color: #4fc3f7; }
+    .we-delta {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 12px;
+      min-width: 56px;
+      text-align: center;
+    }
+    .we-delta.down { color: #66bb6a; background: #0a2010; }
+    .we-delta.up   { color: #ef5350; background: #2a1010; }
+    .we-delta.flat { color: #5a7080; background: #1a1f28; }
+
+    .we-delete {
+      background: transparent;
+      border: none;
+      color: #3a5060;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .we-delete:hover { color: #ef5350; background: #2a1010; }
+
+    .weight-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: #3a4a5a;
+    }
+    .weight-empty .big-icon { font-size: 3rem; margin-bottom: 12px; }
+
+    .weight-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 600px) {
+      .weight-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .ws-box {
+      background: #0f1117;
+      border: 1px solid #2a2e3d;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+    .ws-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.8px; color: #3a5060; margin-bottom: 4px; }
+    .ws-val { font-size: 1.4rem; font-weight: 800; color: #4fc3f7; }
+    .ws-val.down { color: #66bb6a; }
+    .ws-val.up { color: #ef5350; }
+    .ws-sub { font-size: 0.7rem; color: #5a7080; margin-top: 2px; }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Abdis väg till 90 kg</h1>
+  <p class="subtitle">Kalkylatorn för viktmål och dagligt kostschema</p>
+</div>
+
+<!-- TAB BAR -->
+<div class="tabs-bar">
+  <button class="tab-btn active" data-tab="kalkylator" onclick="switchTab('kalkylator')">📊 Kalkylator</button>
+  <button class="tab-btn" data-tab="vikt" onclick="switchTab('vikt')">⚖️ Vikt</button>
+</div>
+
+<!-- TAB: KALKYLATOR -->
+<div class="tab-content active" id="tab-kalkylator">
+<div class="main-layout">
+
+  <!-- ══ LEFT ══ -->
+  <div class="left-col">
+
+    <div class="card">
+      <h2>⚙️ Inställningar</h2>
+      <div class="input-group">
+        <label>Nuvarande vikt</label>
+        <div class="weight-input-wrapper">
+          <input type="number" id="weightInput" min="91" max="300" placeholder="t.ex. 110" />
+          <span>kg</span>
+        </div>
+      </div>
+      <div class="input-group" style="margin-bottom:0">
+        <label>Aktivitetsnivå</label>
+        <div class="activity-grid">
+          <div class="activity-btn" data-level="sedentary" onclick="selectActivity(this)">
+            <div class="icon">🛋️</div>
+            <div class="name">Stillasittande</div>
+            <div class="desc">&lt;5 000 steg/dag, ingen träning</div>
+          </div>
+          <div class="activity-btn" data-level="normal" onclick="selectActivity(this)">
+            <div class="icon">🚶</div>
+            <div class="name">Normal</div>
+            <div class="desc">&gt;5 000 steg + 3 träningspass/v</div>
+          </div>
+          <div class="activity-btn" data-level="active" onclick="selectActivity(this)">
+            <div class="icon">🏃</div>
+            <div class="name">Aktiv</div>
+            <div class="desc">&gt;10 000 steg + 3+ pass/v</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="resultsCard">
+      <h2>📊 Resultat</h2>
+      <div id="resultsContent">
+        <div class="empty-state">
+          <div class="big-icon">⚖️</div>
+          Ange vikt och välj aktivitetsnivå ovan för att se din prognos
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="chartCard" style="display:none">
+      <h2>📈 Viktprognos</h2>
+      <div class="chart-wrapper">
+        <canvas id="weightChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ RIGHT ══ -->
+  <div class="right-col">
+    <div class="card">
+      <h2>🥗 Kostschema – daglig måltid (2 000 kcal)</h2>
+
+      <div class="meal-section-label">Måltid 1 · Smoothie</div>
+
+      <div class="meal-item">
+        <!-- Header -->
+        <div class="meal-item-header">
+          <!-- SVG illustration of coconut milk can -->
+          <svg class="meal-img-svg" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+            <rect width="72" height="72" rx="10" fill="#111a28"/>
+            <!-- Can shadow -->
+            <ellipse cx="36" cy="63" rx="16" ry="3" fill="#000" opacity="0.3"/>
+            <!-- Can body gradient -->
+            <defs>
+              <linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%"   stop-color="#162050"/>
+                <stop offset="35%"  stop-color="#2048b8"/>
+                <stop offset="65%"  stop-color="#2048b8"/>
+                <stop offset="100%" stop-color="#162050"/>
+              </linearGradient>
+              <linearGradient id="topg" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#3a5090"/>
+                <stop offset="100%" stop-color="#1a2860"/>
+              </linearGradient>
+            </defs>
+            <rect x="16" y="14" width="40" height="48" rx="6" fill="url(#cg)"/>
+            <!-- Can top -->
+            <ellipse cx="36" cy="14" rx="20" ry="5" fill="url(#topg)"/>
+            <ellipse cx="36" cy="14" rx="14" ry="3" fill="#4060a0" opacity="0.5"/>
+            <!-- Can bottom edge -->
+            <ellipse cx="36" cy="62" rx="20" ry="4" fill="#101828"/>
+            <!-- Sun/logo circle -->
+            <circle cx="36" cy="29" r="9" fill="#c0282a"/>
+            <!-- Sun rays -->
+            <line x1="36" y1="17" x2="36" y2="21" stroke="#e53a3a" stroke-width="2"/>
+            <line x1="36" y1="37" x2="36" y2="41" stroke="#e53a3a" stroke-width="2"/>
+            <line x1="24" y1="29" x2="28" y2="29" stroke="#e53a3a" stroke-width="2"/>
+            <line x1="44" y1="29" x2="48" y2="29" stroke="#e53a3a" stroke-width="2"/>
+            <line x1="27" y1="21" x2="30" y2="24" stroke="#e53a3a" stroke-width="1.5"/>
+            <line x1="42" y1="34" x2="45" y2="37" stroke="#e53a3a" stroke-width="1.5"/>
+            <line x1="45" y1="21" x2="42" y2="24" stroke="#e53a3a" stroke-width="1.5"/>
+            <line x1="30" y1="34" x2="27" y2="37" stroke="#e53a3a" stroke-width="1.5"/>
+            <!-- Sun inner -->
+            <circle cx="36" cy="29" r="5.5" fill="#e53a3a"/>
+            <!-- Brand text -->
+            <text x="36" y="44" text-anchor="middle" fill="#e8c96a" font-size="5" font-weight="bold" font-family="Arial,sans-serif" letter-spacing="0.3">KUNG MARKATTA</text>
+            <!-- Product name -->
+            <rect x="18" y="47" width="36" height="11" rx="2" fill="#0a1530" opacity="0.8"/>
+            <text x="36" y="55" text-anchor="middle" fill="#7ec8f0" font-size="5.5" font-weight="bold" font-family="Arial,sans-serif">Kokosmjölk</text>
+            <!-- Volume -->
+            <text x="36" y="61" text-anchor="middle" fill="#4a7090" font-size="4" font-family="Arial,sans-serif">400 ml</text>
+          </svg>
+
+          <div class="meal-item-info">
+            <div class="meal-item-name">🥤 Grön smoothie med kokosmjölk & whey</div>
+            <div class="meal-item-desc">Spenat · Grönkål · Blåbär &amp; Hallon<br>Kokosmjölk (400 ml) · Whey proteinpulver (1 dl)</div>
+            <div class="meal-macros">
+              <span class="macro-pill">894 kcal</span>
+              <span class="macro-pill carb">34 g kolh</span>
+              <span class="macro-pill netto">21 g netto</span>
+              <span class="macro-pill prot">38 g protein</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ingredients -->
+        <div class="meal-ingredients">
+          <div class="ingredient-row">
+            <span class="ing-name"><span class="ing-dot" style="background:#4caf50"></span>Spenat</span>
+            <span class="ing-amount">100 g</span>
+            <span class="ing-kcal">23 kcal</span>
+          </div>
+          <div class="ingredient-row">
+            <span class="ing-name"><span class="ing-dot" style="background:#2e7d32"></span>Grönkål</span>
+            <span class="ing-amount">100 g</span>
+            <span class="ing-kcal">49 kcal</span>
+          </div>
+          <div class="ingredient-row">
+            <span class="ing-name"><span class="ing-dot" style="background:#5c6bc0"></span>Blåbär</span>
+            <span class="ing-amount">50 g</span>
+            <span class="ing-kcal">29 kcal</span>
+          </div>
+          <div class="ingredient-row">
+            <span class="ing-name"><span class="ing-dot" style="background:#e91e63"></span>Hallon</span>
+            <span class="ing-amount">50 g</span>
+            <span class="ing-kcal">26 kcal</span>
+          </div>
+          <div class="ingredient-row">
+            <span class="ing-name"><span class="ing-dot" style="background:#4fc3f7"></span>Kokosmjölk</span>
+            <span class="ing-amount">400 ml</span>
+            <span class="ing-kcal">652 kcal</span>
+          </div>
+          <div class="ingredient-row">
+            <span class="ing-name"><span class="ing-dot" style="background:#ce93d8"></span>Whey proteinpulver</span>
+            <span class="ing-amount">1 dl (~30 g)</span>
+            <span class="ing-kcal">115 kcal</span>
+          </div>
+        </div>
+
+        <!-- Totals -->
+        <div class="meal-totals meal-totals-4">
+          <div class="total-cell">
+            <span class="total-cell-label">Kalorier</span>
+            <span class="total-cell-val">894 kcal</span>
+          </div>
+          <div class="total-cell">
+            <span class="total-cell-label">Kolhydrater</span>
+            <span class="total-cell-val carb">34 g</span>
+          </div>
+          <div class="total-cell">
+            <span class="total-cell-label">Netto kolh*</span>
+            <span class="total-cell-val netto">21 g</span>
+          </div>
+          <div class="total-cell">
+            <span class="total-cell-label">Protein</span>
+            <span class="total-cell-val prot">38 g</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEAL 2 -->
+      <div class="meal-section-label" style="margin-top:6px;">Måltid 2 · Superbröd med ost &amp; smör</div>
+
+      <div class="meal-item">
+        <div class="meal-item-header">
+          <!-- SVG: Da Carla Superbröd package -->
+          <svg class="meal-img-svg" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+            <rect width="72" height="72" rx="10" fill="#1a0f0f"/>
+            <defs>
+              <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#c0231a"/>
+                <stop offset="100%" stop-color="#8a1010"/>
+              </linearGradient>
+            </defs>
+            <!-- Package background -->
+            <rect x="8" y="8" width="56" height="56" rx="8" fill="url(#bg2)"/>
+            <!-- Wheat pattern dots -->
+            <circle cx="14" cy="14" r="3" fill="#d44030" opacity="0.6"/>
+            <circle cx="58" cy="14" r="3" fill="#d44030" opacity="0.6"/>
+            <circle cx="14" cy="58" r="3" fill="#d44030" opacity="0.6"/>
+            <circle cx="58" cy="58" r="3" fill="#d44030" opacity="0.6"/>
+            <circle cx="36" cy="12" r="2.5" fill="#d44030" opacity="0.5"/>
+            <circle cx="36" cy="60" r="2.5" fill="#d44030" opacity="0.5"/>
+            <!-- White text area -->
+            <rect x="14" y="14" width="44" height="20" rx="4" fill="white" opacity="0.95"/>
+            <!-- da Carla script -->
+            <text x="36" y="22" text-anchor="middle" fill="#c0231a" font-size="5" font-style="italic" font-family="Georgia,serif" font-weight="bold">da Carla</text>
+            <!-- SUPERBRÖD bold -->
+            <text x="36" y="30" text-anchor="middle" fill="#111" font-size="7" font-weight="900" font-family="Arial Black,sans-serif">SUPERBRÖD</text>
+            <!-- Green badge -->
+            <rect x="14" y="36" width="22" height="8" rx="3" fill="#2e7d32"/>
+            <text x="25" y="42" text-anchor="middle" fill="white" font-size="4.5" font-weight="bold" font-family="Arial,sans-serif">EKOLOGISKT</text>
+            <!-- Tranbär red badge -->
+            <rect x="38" y="36" width="20" height="8" rx="3" fill="#e53935"/>
+            <text x="48" y="42" text-anchor="middle" fill="white" font-size="4.5" font-weight="bold" font-family="Arial,sans-serif">Tranbär</text>
+            <!-- Bottom info -->
+            <text x="36" y="54" text-anchor="middle" fill="#ffcc80" font-size="4" font-family="Arial,sans-serif">Glutenfritt · Vegan · Fibrerikt</text>
+            <text x="36" y="61" text-anchor="middle" fill="#f48fb1" font-size="3.8" font-family="Arial,sans-serif">350 g</text>
+          </svg>
+
+          <div class="meal-item-info">
+            <div class="meal-item-name">🍞 Da Carla Superbröd med ost, smör &amp; ägg</div>
+            <div class="meal-item-desc">2 skivor Superbröd · 4 oskskivor · Smör · 2 kokta ägg</div>
+            <div class="meal-macros">
+              <span class="macro-pill">591 kcal</span>
+              <span class="macro-pill carb">9 g kolh</span>
+              <span class="macro-pill netto">1 g netto</span>
+              <span class="macro-pill prot">34 g protein</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="meal-ingredients">
+          <div class="ingredient-row">
+            <span class="ing-name"><span class="ing-dot" style="background:#c0231a"></span>Da Carla Superbröd</span>
+            <span class="ing-amount">2 skivor (~50 g)</span>
+            <span class="ing-kcal">120 kcal</span>
+          </div>
+          <div class="ingredient-row">
+            <span class="ing-name"><span class="ing-dot" style="background:#ffe082"></span>Oskskivor</span>
+            <span class="ing-amount">4 skivor (~80 g)</span>
+            <span class="ing-kcal">168 kcal</span>
+          </div>
+          <div class="ingredient-row">
+            <span class="ing-name"><span class="ing-dot" style="background:#fff176"></span>Smör (2×10 g)</span>
+            <span class="ing-amount">20 g</span>
+            <span class="ing-kcal">148 kcal</span>
+          </div>
+          <div class="ingredient-row">
+            <span class="ing-name"><span class="ing-dot" style="background:#f9d06a"></span>Kokta ägg (medelstora)</span>
+            <span class="ing-amount">2 st (~100 g)</span>
+            <span class="ing-kcal">155 kcal</span>
+          </div>
+        </div>
+
+        <div class="meal-totals meal-totals-4">
+          <div class="total-cell">
+            <span class="total-cell-label">Kalorier</span>
+            <span class="total-cell-val">591 kcal</span>
+          </div>
+          <div class="total-cell">
+            <span class="total-cell-label">Kolhydrater</span>
+            <span class="total-cell-val carb">9 g</span>
+          </div>
+          <div class="total-cell">
+            <span class="total-cell-label">Netto kolh*</span>
+            <span class="total-cell-val netto">1 g</span>
+          </div>
+          <div class="total-cell">
+            <span class="total-cell-label">Protein</span>
+            <span class="total-cell-val prot">34 g</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEAL 3 -->
+      <div class="meal-section-label" style="margin-top:6px;">Måltid 3 · Kvarg &amp; Valnötter</div>
+
+      <div class="meal-item">
+        <div class="meal-item-header">
+          <!-- SVG: bowl with quark and walnuts -->
+          <svg class="meal-img-svg" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+            <rect width="72" height="72" rx="10" fill="#1a1208"/>
+            <!-- Bowl -->
+            <ellipse cx="36" cy="46" rx="24" ry="8" fill="#2a1e10"/>
+            <path d="M12 38 Q12 58 36 60 Q60 58 60 38 Z" fill="#3a2a18"/>
+            <path d="M14 38 Q14 56 36 58 Q58 56 58 38 Z" fill="#f5f0e8"/>
+            <!-- Quark surface -->
+            <ellipse cx="36" cy="38" rx="22" ry="7" fill="#fffaf5"/>
+            <ellipse cx="36" cy="38" rx="18" ry="5" fill="#fff8f0" opacity="0.8"/>
+            <!-- Walnuts on top -->
+            <ellipse cx="26" cy="36" rx="5" ry="4" fill="#8b5e3c"/>
+            <ellipse cx="26" cy="36" rx="3.5" ry="2.5" fill="#a0723a"/>
+            <line x1="26" y1="33" x2="26" y2="39" stroke="#7a4a28" stroke-width="0.8"/>
+            <line x1="23" y1="36" x2="29" y2="36" stroke="#7a4a28" stroke-width="0.8"/>
+            <ellipse cx="36" cy="34" rx="5" ry="4" fill="#8b5e3c"/>
+            <ellipse cx="36" cy="34" rx="3.5" ry="2.5" fill="#a0723a"/>
+            <line x1="36" y1="31" x2="36" y2="37" stroke="#7a4a28" stroke-width="0.8"/>
+            <line x1="33" y1="34" x2="39" y2="34" stroke="#7a4a28" stroke-width="0.8"/>
+            <ellipse cx="46" cy="36" rx="5" ry="4" fill="#8b5e3c"/>
+            <ellipse cx="46" cy="36" rx="3.5" ry="2.5" fill="#a0723a"/>
+            <line x1="46" y1="33" x2="46" y2="39" stroke="#7a4a28" stroke-width="0.8"/>
+            <line x1="43" y1="36" x2="49" y2="36" stroke="#7a4a28" stroke-width="0.8"/>
+            <!-- Bowl rim -->
+            <ellipse cx="36" cy="38" rx="22" ry="4" fill="none" stroke="#d4c0a0" stroke-width="1.5"/>
+            <!-- Label -->
+            <rect x="18" y="60" width="36" height="9" rx="3" fill="#0f0a04" opacity="0.7"/>
+            <text x="36" y="67" text-anchor="middle" fill="#c8a878" font-size="4.5" font-weight="bold" font-family="Arial,sans-serif">Kvarg &amp; Valnötter</text>
+          </svg>
+
+          <div class="meal-item-info">
+            <div class="meal-item-name">🥣 Naturell kvarg med valnötter &amp; olivolja</div>
+            <div class="meal-item-desc">250 g kvarg (10% fett) · 50 g valnötter · 1 tsk olivolja</div>
+            <div class="meal-macros">
+              <span class="macro-pill">597 kcal</span>
+              <span class="macro-pill carb">11 g kolh</span>
+              <span class="macro-pill netto">9 g netto</span>
+              <span class="macro-pill prot">35 g protein</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="meal-ingredients">
+          <div class="ingredient-row">
+            <span class="ing-name"><span class="ing-dot" style="background:#fffaf5"></span>Kvarg naturell 10% fett</span>
+            <span class="ing-amount">250 g</span>
+            <span class="ing-kcal">230 kcal</span>
+          </div>
+          <div class="ingredient-row">
+            <span class="ing-name"><span class="ing-dot" style="background:#a0723a"></span>Valnötter</span>
+            <span class="ing-amount">50 g</span>
+            <span class="ing-kcal">327 kcal</span>
+          </div>
+          <div class="ingredient-row">
+            <span class="ing-name"><span class="ing-dot" style="background:#c8e06a"></span>Olivolja</span>
+            <span class="ing-amount">1 tsk (5 ml)</span>
+            <span class="ing-kcal">40 kcal</span>
+          </div>
+        </div>
+
+        <div class="meal-totals meal-totals-4">
+          <div class="total-cell">
+            <span class="total-cell-label">Kalorier</span>
+            <span class="total-cell-val">597 kcal</span>
+          </div>
+          <div class="total-cell">
+            <span class="total-cell-label">Kolhydrater</span>
+            <span class="total-cell-val carb">11 g</span>
+          </div>
+          <div class="total-cell">
+            <span class="total-cell-label">Netto kolh*</span>
+            <span class="total-cell-val netto">9 g</span>
+          </div>
+          <div class="total-cell">
+            <span class="total-cell-label">Protein</span>
+            <span class="total-cell-val prot">35 g</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily total -->
+      <div class="daily-total-box">
+        <div class="dt-header">Dagligt totalt · Alla 3 måltider</div>
+        <div class="daily-total-row daily-total-row-4">
+          <div class="dt-cell">
+            <div class="dt-label">Kalorier</div>
+            <div class="dt-val">2 082 kcal</div>
+          </div>
+          <div class="dt-cell">
+            <div class="dt-label">Kolhydrater</div>
+            <div class="dt-val carb">56 g</div>
+          </div>
+          <div class="dt-cell">
+            <div class="dt-label">Netto kolh*</div>
+            <div class="dt-val netto">39 g</div>
+          </div>
+          <div class="dt-cell">
+            <div class="dt-label">Protein</div>
+            <div class="dt-val prot">107 g</div>
+          </div>
+        </div>
+      </div>
+      <div class="footnote">*Nettokolhydrater = Kolhydrater − Fibrer</div>
+    </div>
+  </div>
+
+</div>
+</div>
+<!-- /TAB: KALKYLATOR -->
+
+<!-- TAB: VIKT -->
+<div class="tab-content" id="tab-vikt">
+  <div class="weight-page">
+
+    <!-- Add new weight -->
+    <div class="card">
+      <h2>➕ Logga ny mätning</h2>
+      <div class="add-weight-row">
+        <div class="weight-input-wrapper">
+          <input type="number" id="newWeightInput" min="50" max="300" step="0.1" placeholder="t.ex. 108.5" />
+          <span>kg</span>
+        </div>
+        <button class="add-weight-btn" id="addWeightBtn" onclick="addWeightEntry()">Lägg till</button>
+      </div>
+      <p style="font-size:0.7rem; color:#3a5060; margin-top:10px;">
+        💡 Senast loggade vikt sätts automatiskt som "Nuvarande vikt" i kalkylatorn.
+      </p>
+    </div>
+
+    <!-- Stats -->
+    <div class="card">
+      <h2>📊 Statistik</h2>
+      <div class="weight-stats-grid" id="weightStats">
+        <div class="ws-box">
+          <div class="ws-label">Senaste</div>
+          <div class="ws-val">—</div>
+        </div>
+        <div class="ws-box">
+          <div class="ws-label">Startvikt</div>
+          <div class="ws-val">—</div>
+        </div>
+        <div class="ws-box">
+          <div class="ws-label">Total ändring</div>
+          <div class="ws-val">—</div>
+        </div>
+        <div class="ws-box">
+          <div class="ws-label">Kvar till mål</div>
+          <div class="ws-val">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="card">
+      <h2>📈 Viktutveckling</h2>
+      <div class="weight-chart-wrapper">
+        <canvas id="weightHistoryChart"></canvas>
+      </div>
+    </div>
+
+    <!-- History list -->
+    <div class="card">
+      <h2>📋 Historik</h2>
+      <div class="weight-history-list" id="weightHistoryList">
+        <div class="weight-empty">
+          <div class="big-icon">⚖️</div>
+          Inga mätningar loggade än.<br>
+          Lägg till din första vikt ovan!
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<!-- /TAB: VIKT -->
+
+<script>
+  let selectedLevel = null;
+  let chartInstance = null;
+  let historyChartInstance = null;
+  let weightEntries = []; // in-memory cache
+
+  // ─────────────────────────────────────────────────
+  // STORAGE LAYER (Firebase-ready abstraction)
+  // Replace these functions with Firebase calls later
+  // ─────────────────────────────────────────────────
+  const STORAGE_KEY = 'abdi-weight-entries';
+
+  async function loadEntries() {
+    try {
+      if (typeof window.storage !== 'undefined') {
+        const result = await window.storage.get(STORAGE_KEY);
+        return result ? JSON.parse(result.value) : [];
+      }
+    } catch (err) { /* key not found, return empty */ }
+    return [];
+  }
+
+  async function saveEntries(entries) {
+    try {
+      if (typeof window.storage !== 'undefined') {
+        await window.storage.set(STORAGE_KEY, JSON.stringify(entries));
+      }
+    } catch (err) { console.error('Save error:', err); }
+  }
+
+  // ─────────────────────────────────────────────────
+  // TABS
+  // ─────────────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tab));
+    if (tab === 'vikt') {
+      // Re-render chart on tab switch (canvas needs visible parent for proper sizing)
+      setTimeout(() => renderWeightHistory(), 50);
+    }
+  }
+
+  // ─────────────────────────────────────────────────
+  // WEIGHT LOGGING
+  // ─────────────────────────────────────────────────
+  async function addWeightEntry() {
+    const input = document.getElementById('newWeightInput');
+    const weight = parseFloat(input.value);
+    if (!weight || weight < 30 || weight > 400) {
+      alert('Ange en giltig vikt mellan 30 och 400 kg');
+      return;
+    }
+
+    const entry = {
+      id: Date.now().toString(),
+      weight: weight,
+      date: new Date().toISOString()
+    };
+
+    weightEntries.push(entry);
+    weightEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
+    await saveEntries(weightEntries);
+
+    input.value = '';
+
+    // Auto-update calculator's "Nuvarande vikt" with latest entry
+    syncCalculatorWeight();
+
+    renderWeightHistory();
+  }
+
+  async function deleteEntry(id) {
+    weightEntries = weightEntries.filter(e => e.id !== id);
+    await saveEntries(weightEntries);
+    syncCalculatorWeight();
+    renderWeightHistory();
+  }
+
+  function syncCalculatorWeight() {
+    if (weightEntries.length === 0) return;
+    const latest = weightEntries[weightEntries.length - 1];
+    const calcInput = document.getElementById('weightInput');
+    calcInput.value = latest.weight;
+    calculate();
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function renderWeightHistory() {
+    renderWeightStats();
+    renderWeightChart();
+    renderWeightList();
+  }
+
+  function renderWeightStats() {
+    const grid = document.getElementById('weightStats');
+    if (weightEntries.length === 0) {
+      grid.innerHTML = `
+        <div class="ws-box"><div class="ws-label">Senaste</div><div class="ws-val">—</div></div>
+        <div class="ws-box"><div class="ws-label">Startvikt</div><div class="ws-val">—</div></div>
+        <div class="ws-box"><div class="ws-label">Total ändring</div><div class="ws-val">—</div></div>
+        <div class="ws-box"><div class="ws-label">Kvar till mål</div><div class="ws-val">—</div></div>
+      `;
+      return;
+    }
+
+    const latest = weightEntries[weightEntries.length - 1].weight;
+    const start = weightEntries[0].weight;
+    const change = latest - start;
+    const remaining = latest - 90;
+
+    const changeClass = change < 0 ? 'down' : (change > 0 ? 'up' : '');
+    const changeSign = change > 0 ? '+' : '';
+
+    grid.innerHTML = `
+      <div class="ws-box">
+        <div class="ws-label">Senaste</div>
+        <div class="ws-val">${latest.toFixed(1)} kg</div>
+        <div class="ws-sub">${formatDate(weightEntries[weightEntries.length - 1].date)}</div>
+      </div>
+      <div class="ws-box">
+        <div class="ws-label">Startvikt</div>
+        <div class="ws-val">${start.toFixed(1)} kg</div>
+        <div class="ws-sub">${formatDate(weightEntries[0].date)}</div>
+      </div>
+      <div class="ws-box">
+        <div class="ws-label">Total ändring</div>
+        <div class="ws-val ${changeClass}">${changeSign}${change.toFixed(1)} kg</div>
+        <div class="ws-sub">${weightEntries.length} mätningar</div>
+      </div>
+      <div class="ws-box">
+        <div class="ws-label">Kvar till mål</div>
+        <div class="ws-val ${remaining <= 0 ? 'down' : ''}">${remaining > 0 ? remaining.toFixed(1) + ' kg' : '🎯 Nått!'}</div>
+        <div class="ws-sub">Mål: 90 kg</div>
+      </div>
+    `;
+  }
+
+  function renderWeightChart() {
+    const ctx = document.getElementById('weightHistoryChart').getContext('2d');
+    if (historyChartInstance) historyChartInstance.destroy();
+
+    if (weightEntries.length === 0) {
+      historyChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Inga data'],
+          datasets: [{
+            label: 'Mål (90 kg)',
+            data: [90],
+            borderColor: '#ef5350',
+            borderDash: [6, 4],
+            borderWidth: 1.5,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#7a8ba0' } } },
+          scales: {
+            x: { ticks: { color: '#5a6a7a' }, grid: { color: '#1e2230' } },
+            y: { ticks: { color: '#5a6a7a', callback: v => v + ' kg' }, grid: { color: '#1e2230' }, min: 85, max: 120 }
+          }
+        }
+      });
+      return;
+    }
+
+    const labels = weightEntries.map(e => formatDate(e.date));
+    const data = weightEntries.map(e => e.weight);
+    const minWeight = Math.min(...data, 90);
+    const maxWeight = Math.max(...data, 90);
+
+    historyChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Loggad vikt',
+          data: data,
+          borderColor: '#4fc3f7',
+          backgroundColor: 'rgba(79,195,247,0.1)',
+          borderWidth: 2.5,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#4fc3f7',
+          pointBorderColor: '#0f1117',
+          pointBorderWidth: 2,
+          fill: true,
+          tension: 0.3
+        }, {
+          label: 'Mål (90 kg)',
+          data: Array(labels.length).fill(90),
+          borderColor: '#ef5350',
+          borderDash: [6, 4],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#9aa5b4', font: { size: 12 } } },
+          tooltip: {
+            callbacks: { label: c => ` ${c.dataset.label}: ${Number(c.raw).toFixed(1)} kg` }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#5a6a7a', font: { size: 10 }, maxRotation: 45 },
+            grid: { color: '#1e2230' }
+          },
+          y: {
+            ticks: { color: '#5a6a7a', font: { size: 10 }, callback: v => v + ' kg' },
+            grid: { color: '#1e2230' },
+            min: Math.floor(minWeight - 2),
+            max: Math.ceil(maxWeight + 2)
+          }
+        }
+      }
+    });
+  }
+
+  function renderWeightList() {
+    const list = document.getElementById('weightHistoryList');
+    if (weightEntries.length === 0) {
+      list.innerHTML = `
+        <div class="weight-empty">
+          <div class="big-icon">⚖️</div>
+          Inga mätningar loggade än.<br>
+          Lägg till din första vikt ovan!
+        </div>`;
+      return;
+    }
+
+    // Show newest first
+    const reversed = [...weightEntries].reverse();
+    list.innerHTML = reversed.map((e, idx) => {
+      // Compare to previous chronological entry
+      const prevIdx = weightEntries.findIndex(x => x.id === e.id) - 1;
+      const prev = prevIdx >= 0 ? weightEntries[prevIdx] : null;
+      let deltaHtml = '<span class="we-delta flat">—</span>';
+      if (prev) {
+        const diff = e.weight - prev.weight;
+        const sign = diff > 0 ? '+' : '';
+        const cls = diff < 0 ? 'down' : (diff > 0 ? 'up' : 'flat');
+        deltaHtml = `<span class="we-delta ${cls}">${sign}${diff.toFixed(1)} kg</span>`;
+      }
+      return `
+        <div class="weight-entry">
+          <span class="we-date">${formatDate(e.date)}</span>
+          <span class="we-weight">${e.weight.toFixed(1)} kg</span>
+          ${deltaHtml}
+          <button class="we-delete" onclick="deleteEntry('${e.id}')" title="Radera">🗑</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Initialize on load
+  (async function init() {
+    weightEntries = await loadEntries();
+    renderWeightHistory();
+    syncCalculatorWeight(); // sets calc weight if entries exist
+  })();
+
+  // Enter key adds weight
+  document.getElementById('newWeightInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addWeightEntry();
+  });
+
+  function selectActivity(el) {
+    document.querySelectorAll('.activity-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedLevel = el.dataset.level;
+    calculate();
+  }
+
+  document.getElementById('weightInput').addEventListener('input', calculate);
+
+  function getBMR(weightKg) {
+    return 10 * weightKg + 6.25 * 178 - 5 * 28 + 5;
+  }
+
+  function getActivityMultiplier(level) {
+    if (level === 'sedentary') return 1.35;
+    if (level === 'normal')    return 1.6;
+    if (level === 'active')    return 1.85;
+    return 1.5;
+  }
+
+  function getActivityLabel(level) {
+    if (level === 'sedentary') return 'Stillasittande';
+    if (level === 'normal')    return 'Normal';
+    if (level === 'active')    return 'Aktiv';
+  }
+
+  function calculate() {
+    const weightInput = parseFloat(document.getElementById('weightInput').value);
+    if (!weightInput || !selectedLevel) return;
+    if (weightInput <= 90) {
+      document.getElementById('resultsContent').innerHTML = `
+        <div class="empty-state">
+          <div class="big-icon">🎯</div>
+          Abdi väger redan under eller exakt 90 kg – målet är nått!
+        </div>`;
+      document.getElementById('chartCard').style.display = 'none';
+      return;
+    }
+
+    const intake = 2082;
+    const targetWeight = 89.9;
+    const multiplier = getActivityMultiplier(selectedLevel);
+
+    let weight = weightInput;
+    let days = 0;
+    const weightHistory = [weight];
+    const dayLabels = [0];
+
+    while (weight > targetWeight && days < 3650) {
+      const bmr = getBMR(weight);
+      const tdee = bmr * multiplier;
+      const deficit = tdee - intake;
+      if (deficit <= 0) break;
+      weight -= deficit / 7700;
+      days++;
+      if (days % 7 === 0 || weight <= targetWeight) {
+        weightHistory.push(Math.max(weight, targetWeight - 0.5));
+        dayLabels.push(days);
+      }
+    }
+
+    const startBMR = getBMR(weightInput);
+    const startTDEE = Math.round(startBMR * multiplier);
+    const startDeficit = startTDEE - intake;
+
+    const today = new Date();
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + days);
+    const dateStr = targetDate.toLocaleDateString('sv-SE', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const weeks = Math.floor(days / 7);
+    const remainDays = days % 7;
+
+    document.getElementById('resultsContent').innerHTML = `
+      <div class="results-grid">
+        <div class="stat-box highlight">
+          <div class="stat-value big">${days}</div>
+          <div class="stat-label">dagar till under 90 kg</div>
+          <div class="stat-sub">${weeks} veckor ${remainDays > 0 ? `och ${remainDays} dagar` : ''}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">${startTDEE.toLocaleString('sv-SE')}</div>
+          <div class="stat-label">kcal/dag förbrukad</div>
+          <div class="stat-sub">vid ${weightInput} kg, ${getActivityLabel(selectedLevel).toLowerCase()}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">${startDeficit.toLocaleString('sv-SE')}</div>
+          <div class="stat-label">kcal underskott/dag</div>
+          <div class="stat-sub">Förbrukar − 2 082 intag</div>
+        </div>
+      </div>
+      <div class="date-box">
+        📅 Förväntad måldag: <strong>${dateStr}</strong>
+      </div>
+      <div class="deficit-bar">
+        <div class="deficit-fill" style="width: ${Math.min(100, (startDeficit / startTDEE) * 100 * 3)}%"></div>
+      </div>
+      <div class="deficit-labels">
+        <span>Kaloriunderskott</span>
+        <span>${((startDeficit / startTDEE) * 100).toFixed(1)}% under TDEE</span>
+      </div>
+    `;
+
+    document.getElementById('chartCard').style.display = 'block';
+    const ctx = document.getElementById('weightChart').getContext('2d');
+    if (chartInstance) chartInstance.destroy();
+
+    const displayLabels = dayLabels.map(d => d === 0 ? 'Nu' : `Dag ${d}`);
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: displayLabels,
+        datasets: [{
+          label: 'Vikt (kg)',
+          data: weightHistory,
+          borderColor: '#4fc3f7',
+          backgroundColor: 'rgba(79,195,247,0.08)',
+          borderWidth: 2.5,
+          pointRadius: 3,
+          pointBackgroundColor: '#4fc3f7',
+          fill: true,
+          tension: 0.35
+        }, {
+          label: 'Mål (90 kg)',
+          data: Array(displayLabels.length).fill(90),
+          borderColor: '#ef5350',
+          borderDash: [6, 4],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#7a8ba0', font: { size: 11 } } },
+          tooltip: {
+            callbacks: { label: ctx => ` ${ctx.dataset.label}: ${Number(ctx.raw).toFixed(1)} kg` }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#5a6a7a', maxTicksLimit: 8, font: { size: 10 } },
+            grid: { color: '#1e2230' }
+          },
+          y: {
+            ticks: { color: '#5a6a7a', font: { size: 10 }, callback: v => v + ' kg' },
+            grid: { color: '#1e2230' },
+            min: Math.floor(Math.min(...weightHistory, 90) - 2),
+            max: Math.ceil(weightInput + 1)
+          }
+        }
+      }
+    });
+  }
+</script>
+</body>
+</html>
