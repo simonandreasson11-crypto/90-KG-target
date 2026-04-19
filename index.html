@@ -5,6 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Abdis väg till 90 kg</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSYr7Z1eUPMedPmPT2TDq7GPxhi5zltVo",
+      authDomain: "abdi-90-kg.firebaseapp.com",
+      projectId: "abdi-90-kg",
+      storageBucket: "abdi-90-kg.firebasestorage.app",
+      messagingSenderId: "609674839252",
+      appId: "1:609674839252:web:0840c9bcfd9362dd6f6741"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Expose Firebase API to our regular script
+    window.firebaseAPI = {
+      auth, db,
+      signInWithEmailAndPassword, createUserWithEmailAndPassword,
+      onAuthStateChanged, signOut,
+      collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp
+    };
+
+    // Dispatch event so main script knows Firebase is ready
+    window.dispatchEvent(new Event('firebase-ready'));
+  </script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -479,9 +510,189 @@
     .ws-val.down { color: #66bb6a; }
     .ws-val.up { color: #ef5350; }
     .ws-sub { font-size: 0.7rem; color: #5a7080; margin-top: 2px; }
+
+    /* ── LOGIN SCREEN ── */
+    #login-screen {
+      position: fixed;
+      inset: 0;
+      background: #0f1117;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #login-screen.hidden { display: none; }
+
+    .login-box {
+      background: #1a1d27;
+      border: 1px solid #2a2e3d;
+      border-radius: 20px;
+      padding: 40px 32px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    .login-logo {
+      font-size: 3rem;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .login-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 6px;
+      background: linear-gradient(90deg, #4fc3f7, #81d4fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .login-subtitle {
+      text-align: center;
+      color: #7a8ba0;
+      font-size: 0.85rem;
+      margin-bottom: 28px;
+    }
+
+    .login-input {
+      width: 100%;
+      background: #0f1117;
+      border: 1px solid #2a2e3d;
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #e8eaf0;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .login-input:focus { border-color: #4fc3f7; }
+
+    .login-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #4fc3f7, #0288d1);
+      border: none;
+      color: white;
+      padding: 13px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79,195,247,0.3); }
+    .login-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .login-switch {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 0.82rem;
+      color: #7a8ba0;
+    }
+
+    .login-switch a {
+      color: #4fc3f7;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .login-switch a:hover { text-decoration: underline; }
+
+    .login-error {
+      background: #2a1010;
+      border: 1px solid #5a2020;
+      color: #ef5350;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .login-error.show { display: block; }
+
+    /* ── USER BAR ── */
+    .user-bar {
+      max-width: 1100px;
+      margin: 0 auto 18px auto;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      padding: 0 4px;
+    }
+
+    .user-info {
+      font-size: 0.8rem;
+      color: #7a8ba0;
+    }
+
+    .user-info strong { color: #4fc3f7; }
+
+    .logout-btn {
+      background: transparent;
+      border: 1px solid #2a2e3d;
+      color: #9aa5b4;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .logout-btn:hover {
+      border-color: #ef5350;
+      color: #ef5350;
+    }
+
+    .we-author {
+      font-size: 0.68rem;
+      color: #5a7080;
+      font-style: italic;
+    }
+
+    .app-container.hidden { display: none; }
   </style>
 </head>
 <body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">⚖️</div>
+    <div class="login-title">Abdis väg till 90 kg</div>
+    <div class="login-subtitle" id="loginSubtitle">Logga in för att fortsätta</div>
+
+    <div class="login-error" id="loginError"></div>
+
+    <input type="email" class="login-input" id="loginEmail" placeholder="E-postadress" autocomplete="email" />
+    <input type="password" class="login-input" id="loginPassword" placeholder="Lösenord" autocomplete="current-password" />
+
+    <button class="login-btn" id="loginBtn" onclick="handleAuth()">Logga in</button>
+
+    <div class="login-switch">
+      <span id="switchText">Inget konto?</span>
+      <a id="switchLink" onclick="toggleAuthMode()">Skapa konto</a>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP (hidden until logged in) -->
+<div class="app-container hidden" id="appContainer">
+
+<!-- User bar -->
+<div class="user-bar">
+  <span class="user-info">Inloggad som <strong id="userEmail">—</strong></span>
+  <button class="logout-btn" onclick="handleLogout()">Logga ut</button>
+</div>
 
 <div class="page-header">
   <h1>Abdis väg till 90 kg</h1>
@@ -950,34 +1161,143 @@
 </div>
 <!-- /TAB: VIKT -->
 
+</div>
+<!-- /APP CONTAINER -->
+
 <script>
   let selectedLevel = null;
   let chartInstance = null;
   let historyChartInstance = null;
-  let weightEntries = []; // in-memory cache
+  let weightEntries = []; // in-memory cache synced from Firestore
+  let currentUser = null;
+  let entriesUnsubscribe = null; // to stop listening when logged out
+  let isSignUpMode = false;
 
   // ─────────────────────────────────────────────────
-  // STORAGE LAYER (Firebase-ready abstraction)
-  // Replace these functions with Firebase calls later
+  // AUTH (Firebase)
   // ─────────────────────────────────────────────────
-  const STORAGE_KEY = 'abdi-weight-entries';
-
-  async function loadEntries() {
-    try {
-      if (typeof window.storage !== 'undefined') {
-        const result = await window.storage.get(STORAGE_KEY);
-        return result ? JSON.parse(result.value) : [];
-      }
-    } catch (err) { /* key not found, return empty */ }
-    return [];
+  function toggleAuthMode() {
+    isSignUpMode = !isSignUpMode;
+    document.getElementById('loginBtn').textContent = isSignUpMode ? 'Skapa konto' : 'Logga in';
+    document.getElementById('switchText').textContent = isSignUpMode ? 'Har du redan ett konto?' : 'Inget konto?';
+    document.getElementById('switchLink').textContent = isSignUpMode ? 'Logga in' : 'Skapa konto';
+    document.getElementById('loginSubtitle').textContent = isSignUpMode ? 'Skapa ett nytt konto' : 'Logga in för att fortsätta';
+    document.getElementById('loginError').classList.remove('show');
   }
 
-  async function saveEntries(entries) {
+  function showError(msg) {
+    const el = document.getElementById('loginError');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
+  async function handleAuth() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginBtn');
+
+    if (!email || !password) {
+      showError('Fyll i både e-post och lösenord');
+      return;
+    }
+    if (password.length < 6) {
+      showError('Lösenordet måste vara minst 6 tecken');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Vänta...';
+
     try {
-      if (typeof window.storage !== 'undefined') {
-        await window.storage.set(STORAGE_KEY, JSON.stringify(entries));
+      const api = window.firebaseAPI;
+      if (isSignUpMode) {
+        await api.createUserWithEmailAndPassword(api.auth, email, password);
+      } else {
+        await api.signInWithEmailAndPassword(api.auth, email, password);
       }
-    } catch (err) { console.error('Save error:', err); }
+      // onAuthStateChanged will handle UI update
+    } catch (err) {
+      let msg = 'Något gick fel';
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        msg = 'Fel e-post eller lösenord';
+      } else if (err.code === 'auth/email-already-in-use') {
+        msg = 'Denna e-post är redan registrerad';
+      } else if (err.code === 'auth/invalid-email') {
+        msg = 'Ogiltig e-postadress';
+      } else if (err.code === 'auth/weak-password') {
+        msg = 'Lösenordet är för svagt (minst 6 tecken)';
+      } else if (err.code === 'auth/network-request-failed') {
+        msg = 'Nätverksfel – kolla internetanslutningen';
+      }
+      showError(msg);
+      btn.disabled = false;
+      btn.textContent = isSignUpMode ? 'Skapa konto' : 'Logga in';
+    }
+  }
+
+  async function handleLogout() {
+    if (entriesUnsubscribe) { entriesUnsubscribe(); entriesUnsubscribe = null; }
+    await window.firebaseAPI.signOut(window.firebaseAPI.auth);
+  }
+
+  // ─────────────────────────────────────────────────
+  // FIRESTORE (replaces local storage)
+  // Shared collection "weightEntries" — all logged-in users see same data
+  // ─────────────────────────────────────────────────
+  function startListeningToEntries() {
+    const api = window.firebaseAPI;
+    const q = api.query(api.collection(api.db, 'weightEntries'), api.orderBy('date', 'asc'));
+    entriesUnsubscribe = api.onSnapshot(q, (snapshot) => {
+      weightEntries = snapshot.docs.map(d => {
+        const data = d.data();
+        return {
+          id: d.id,
+          weight: data.weight,
+          date: data.date,
+          author: data.author || 'okänd'
+        };
+      });
+      renderWeightHistory();
+      syncCalculatorWeight();
+    }, (err) => {
+      console.error('Firestore listen error:', err);
+    });
+  }
+
+  async function addWeightEntry() {
+    const input = document.getElementById('newWeightInput');
+    const weight = parseFloat(input.value);
+    if (!weight || weight < 30 || weight > 400) {
+      alert('Ange en giltig vikt mellan 30 och 400 kg');
+      return;
+    }
+
+    const api = window.firebaseAPI;
+    try {
+      await api.addDoc(api.collection(api.db, 'weightEntries'), {
+        weight: weight,
+        date: new Date().toISOString(),
+        author: currentUser?.email || 'okänd',
+        createdAt: api.serverTimestamp()
+      });
+      input.value = '';
+      // UI updates automatically via onSnapshot listener
+    } catch (err) {
+      console.error('Add weight error:', err);
+      alert('Kunde inte spara mätningen. Försök igen.');
+    }
+  }
+
+  async function deleteEntry(id) {
+    if (!confirm('Radera denna mätning?')) return;
+    const api = window.firebaseAPI;
+    try {
+      await api.deleteDoc(api.doc(api.db, 'weightEntries', id));
+      // UI updates via onSnapshot
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Kunde inte radera mätningen.');
+    }
   }
 
   // ─────────────────────────────────────────────────
@@ -987,45 +1307,8 @@
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tab));
     if (tab === 'vikt') {
-      // Re-render chart on tab switch (canvas needs visible parent for proper sizing)
       setTimeout(() => renderWeightHistory(), 50);
     }
-  }
-
-  // ─────────────────────────────────────────────────
-  // WEIGHT LOGGING
-  // ─────────────────────────────────────────────────
-  async function addWeightEntry() {
-    const input = document.getElementById('newWeightInput');
-    const weight = parseFloat(input.value);
-    if (!weight || weight < 30 || weight > 400) {
-      alert('Ange en giltig vikt mellan 30 och 400 kg');
-      return;
-    }
-
-    const entry = {
-      id: Date.now().toString(),
-      weight: weight,
-      date: new Date().toISOString()
-    };
-
-    weightEntries.push(entry);
-    weightEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
-    await saveEntries(weightEntries);
-
-    input.value = '';
-
-    // Auto-update calculator's "Nuvarande vikt" with latest entry
-    syncCalculatorWeight();
-
-    renderWeightHistory();
-  }
-
-  async function deleteEntry(id) {
-    weightEntries = weightEntries.filter(e => e.id !== id);
-    await saveEntries(weightEntries);
-    syncCalculatorWeight();
-    renderWeightHistory();
   }
 
   function syncCalculatorWeight() {
@@ -1192,8 +1475,7 @@
 
     // Show newest first
     const reversed = [...weightEntries].reverse();
-    list.innerHTML = reversed.map((e, idx) => {
-      // Compare to previous chronological entry
+    list.innerHTML = reversed.map((e) => {
       const prevIdx = weightEntries.findIndex(x => x.id === e.id) - 1;
       const prev = prevIdx >= 0 ? weightEntries[prevIdx] : null;
       let deltaHtml = '<span class="we-delta flat">—</span>';
@@ -1203,9 +1485,13 @@
         const cls = diff < 0 ? 'down' : (diff > 0 ? 'up' : 'flat');
         deltaHtml = `<span class="we-delta ${cls}">${sign}${diff.toFixed(1)} kg</span>`;
       }
+      const authorShort = (e.author || '').split('@')[0];
       return `
         <div class="weight-entry">
-          <span class="we-date">${formatDate(e.date)}</span>
+          <span class="we-date">
+            ${formatDate(e.date)}
+            ${authorShort ? `<br><span class="we-author">av ${authorShort}</span>` : ''}
+          </span>
           <span class="we-weight">${e.weight.toFixed(1)} kg</span>
           ${deltaHtml}
           <button class="we-delete" onclick="deleteEntry('${e.id}')" title="Radera">🗑</button>
@@ -1214,17 +1500,60 @@
     }).join('');
   }
 
-  // Initialize on load
-  (async function init() {
-    weightEntries = await loadEntries();
-    renderWeightHistory();
-    syncCalculatorWeight(); // sets calc weight if entries exist
-  })();
+  // ─────────────────────────────────────────────────
+  // INITIALIZATION — wait for Firebase, then listen to auth
+  // ─────────────────────────────────────────────────
+  function initAuth() {
+    const api = window.firebaseAPI;
+    api.onAuthStateChanged(api.auth, (user) => {
+      if (user) {
+        // Logged in
+        currentUser = user;
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('appContainer').classList.remove('hidden');
+        document.getElementById('userEmail').textContent = user.email;
+        startListeningToEntries();
+      } else {
+        // Logged out
+        currentUser = null;
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('appContainer').classList.add('hidden');
+        // Reset inputs
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('loginError').classList.remove('show');
+        document.getElementById('loginBtn').disabled = false;
+        document.getElementById('loginBtn').textContent = isSignUpMode ? 'Skapa konto' : 'Logga in';
+        weightEntries = [];
+        renderWeightHistory();
+      }
+    });
+  }
 
-  // Enter key adds weight
+  if (window.firebaseAPI) {
+    initAuth();
+  } else {
+    window.addEventListener('firebase-ready', initAuth);
+  }
+
+  // Enter key listeners
   document.getElementById('newWeightInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') addWeightEntry();
   });
+  document.getElementById('loginPassword').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleAuth();
+  });
+  document.getElementById('loginEmail').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('loginPassword').focus();
+  });
+
+  // Expose functions to global scope for onclick handlers
+  window.handleAuth = handleAuth;
+  window.handleLogout = handleLogout;
+  window.toggleAuthMode = toggleAuthMode;
+  window.addWeightEntry = addWeightEntry;
+  window.deleteEntry = deleteEntry;
+  window.switchTab = switchTab;
 
   function selectActivity(el) {
     document.querySelectorAll('.activity-btn').forEach(b => b.classList.remove('selected'));
